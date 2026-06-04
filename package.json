@@ -1,0 +1,54 @@
+{
+	"name": "tokwatchr",
+	"version": "0.1.0",
+	"description": "Download TikTok livestreams. Given a username, download the livestream.",
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
+		}
+	},
+	"files": [
+		"dist",
+		"src",
+		"README.md",
+		"LICENSE"
+	],
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"prepublishOnly": "tsc -p tsconfig.build.json",
+		"check": "biome check .",
+		"check:write": "biome check --write .",
+		"format": "biome format .",
+		"format:write": "biome format --write .",
+		"lint": "biome lint .",
+		"lint:write": "biome lint --write .",
+		"typecheck": "tsc --noEmit"
+	},
+	"keywords": [
+		"tiktok",
+		"live",
+		"livestream",
+		"download",
+		"recorder",
+		"stream"
+	],
+	"license": "MIT",
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.16",
+		"@types/bun": "latest",
+		"@types/node": "^25.9.1"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"impit": "^0.14.1"
+	}
+}

@@ -1,0 +1,155 @@
+import type { Browser } from "impit";
+
+// ─── Quality ──────────────────────────────────────────────
+
+export type StreamQualityKey = "fullhd1" | "hd1" | "sd2" | "sd1";
+
+export interface QualityOption {
+	key: StreamQualityKey;
+	label: string;
+	level: number;
+	flv: string;
+	hls: string;
+}
+
+// ─── Stream info ──────────────────────────────────────────
+
+export interface StreamInfo {
+	roomId: string;
+	username: string;
+	title: string;
+	qualities: QualityOption[];
+	selectedQuality: QualityOption;
+	streamUrl: string;
+	viewerCount: number;
+	startedAt: Date;
+}
+
+// ─── Download stats (live) ────────────────────────────────
+
+export interface DownloadStats {
+	downloadedBytes: number;
+	downloadedMB: number;
+	duration: number; // seconds elapsed
+	speed: number; // bytes/sec
+	speedMBps: number;
+	quality: StreamQualityKey;
+	state: DownloaderState;
+}
+
+// ─── Download result ──────────────────────────────────────
+
+export interface DownloadResult {
+	filePath: string;
+	sizeBytes: number;
+	sizeMB: number;
+	duration: number; // seconds of content
+	username: string;
+	roomId: string;
+	quality: StreamQualityKey;
+	format: OutputFormat;
+	startedAt: Date;
+	endedAt: Date;
+}
+
+// ─── States ───────────────────────────────────────────────
+
+export type DownloaderState =
+	| "idle"
+	| "waiting"
+	| "recording"
+	| "stopping"
+	| "done";
+export type OutputFormat = "mp4" | "mkv" | "ts" | "flv";
+
+// ─── Options ──────────────────────────────────────────────
+
+export interface TikTokLiveDownloaderOptions {
+	/** Output directory (default: process.cwd()) */
+	output?: string;
+	/** Filename template. Variables: {username}, {date}, {time}, {title} (default: "{username}={date}_{time}") */
+	filename?: string;
+	/** Quality preference (default: "best") */
+	quality?: "best" | "worst" | StreamQualityKey;
+	/** Output container format (default: "mp4" when ffmpeg available, "flv" otherwise) */
+	format?: OutputFormat;
+	/** Use ffmpeg for download + remux. Auto-detects if ffmpeg-static is available. */
+	useFfmpeg?: boolean;
+	/** Custom ffmpeg binary path. Overrides ffmpeg-static. */
+	ffmpegPath?: string;
+	/** Extra ffmpeg output arguments (default: ["-c", "copy"]). Set to override. */
+	ffmpegArgs?: string[];
+	/** Re-encode bitrate (e.g. "1M", "1000k"). Default: copy streams (no re-encode). */
+	bitrate?: string;
+	/** Max recording duration in seconds (default: Infinity). */
+	maxDuration?: number;
+	/** Split recording into segments of this many seconds (default: Infinity = single file). */
+	maxSegmentDuration?: number;
+	/** Polling interval in ms when waiting for live (default: 30_000). */
+	checkInterval?: number;
+	/** HTTP proxy URL (supports http, https, socks4, socks5). */
+	proxyUrl?: string;
+	/** Tough-cookie compatible cookie jar for authenticated sessions. */
+	cookieJar?: CookieJarLike;
+	/** Browser to emulate (default: "chrome"). */
+	browser?: Browser;
+	/** Request timeout in ms (default: 30_000). */
+	timeout?: number;
+	/** Extra headers to send with every request. */
+	headers?: Record<string, string>;
+	/** Progress callback (functional shorthand). */
+	onProgress?: (stats: DownloadStats) => void;
+	/** Start callback (functional shorthand). */
+	onStart?: (info: StreamInfo) => void;
+	/** Error callback (functional shorthand). */
+	onError?: (err: Error) => void;
+	/** AbortSignal for cancellation. */
+	signal?: AbortSignal;
+}
+
+export interface CookieJarLike {
+	setCookie(raw: string, url: string): Promise<void>;
+	getCookieString(url: string): Promise<string>;
+}
+
+// ─── Events ───────────────────────────────────────────────
+
+export interface TikTokLiveDownloaderEvents {
+	/** Emitted when a live stream is detected and we're about to start recording. */
+	start: [info: StreamInfo];
+	/** Emitted periodically (every ~1s) during recording with current stats. */
+	progress: [stats: DownloadStats];
+	/** Emitted when each segment completes. Only fires when maxSegmentDuration is set. */
+	segment: [result: DownloadResult, partNumber: number];
+	/** Emitted when all segments are done and the stream has ended. */
+	complete: [results: DownloadResult[]];
+	/** Emitted on any error. The downloader will also throw. */
+	error: [err: Error];
+	/** Emitted when stop() is called and cleanup is done. */
+	stop: [];
+}
+
+// ─── Internal resolved options ────────────────────────────
+
+export interface ResolvedOptions {
+	output: string;
+	filename: string;
+	quality: "best" | "worst" | StreamQualityKey;
+	format: OutputFormat;
+	useFfmpeg: boolean;
+	ffmpegPath: string | null;
+	ffmpegArgs: string[];
+	bitrate: string | null;
+	maxDuration: number;
+	maxSegmentDuration: number;
+	checkInterval: number;
+	proxyUrl: string | null;
+	cookieJar: CookieJarLike | null;
+	browser: Browser;
+	timeout: number;
+	headers: Record<string, string>;
+	onProgress: ((stats: DownloadStats) => void) | null;
+	onStart: ((info: StreamInfo) => void) | null;
+	onError: ((err: Error) => void) | null;
+	signal: AbortSignal | null;
+}
