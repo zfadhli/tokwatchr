@@ -73,9 +73,9 @@ export interface TikTokLiveDownloaderOptions {
 	quality?: "best" | "worst" | StreamQualityKey;
 	/** Output container format (default: "mp4" when ffmpeg available, "flv" otherwise) */
 	format?: OutputFormat;
-	/** Use ffmpeg for download + remux. Auto-detects if ffmpeg-static is available. */
+	/** Use ffmpeg for download + remux. Auto-detects system ffmpeg on PATH. */
 	useFfmpeg?: boolean;
-	/** Custom ffmpeg binary path. Overrides ffmpeg-static. */
+	/** Custom ffmpeg binary path. Overrides auto-detected system ffmpeg. */
 	ffmpegPath?: string;
 	/** Extra ffmpeg output arguments (default: ["-c", "copy"]). Set to override. */
 	ffmpegArgs?: string[];

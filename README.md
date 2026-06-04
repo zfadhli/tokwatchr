@@ -8,26 +8,29 @@
 [![npm version](https://img.shields.io/npm/v/tokwatchr?style=flat-square)](https://www.npmjs.com/package/tokwatchr)
 [![npm downloads](https://img.shields.io/npm/dm/tokwatchr?style=flat-square)](https://www.npmjs.com/package/tokwatchr)
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Bun](https://img.shields.io/badge/Bun-000?style=flat-square&logo=bun&logoColor=white)](https://bun.sh)
+[![Node.js](https://img.shields.io/badge/Node.js->=20-3c873a?style=flat-square)](https://nodejs.org)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
 [Install](#install) • [Quick start](#quick-start) • [API](#api) • [How it works](#how-it-works) • [Advanced usage](#advanced-usage)
 
 </div>
 
-A TypeScript library for recording TikTok livestreams. Pass a username, it waits for the user to go live, downloads the stream, and saves it as an MP4. Uses [impit](https://github.com/apify/impit) for browser TLS fingerprint emulation to bypass bot detection, and optionally [ffmpeg](https://ffmpeg.org) (bundled via `ffmpeg-static`) for reliable remuxing.
+A TypeScript library for downloading TikTok livestreams. Pass a username, it records the stream in crash-safe `.ts` segments, applies EBU R128 audio normalization, and remuxes to `.mp4`. Uses [impit](https://github.com/apify/impit) for browser TLS fingerprint emulation to bypass bot detection, and [ffmpeg](https://ffmpeg.org) for audio normalization and container remuxing.
 
 > [!NOTE]
 > This project is a reverse-engineering effort and is not affiliated with TikTok. Use at your own risk.
 
 ## Features
 
-- **One-shot or event-driven** — use the `download()` function for simplicity, or `TikTokLiveDownloader` for full control with progress events.
+- **One-shot or event-driven** — use the `download()` function for simplicity, or `TikTokLiveDownloader` for full control with progress and segment events.
 - **Browser TLS emulation** — uses `impit` with Chrome fingerprints to bypass TikTok's bot detection.
-- **Zero system dependencies** — `ffmpeg` is bundled via `ffmpeg-static`; no manual installation needed.
+- **System ffmpeg** — auto-detects ffmpeg on PATH; falls back to raw FLV download if not found.
+- **EBU R128 audio normalization** — two-pass loudnorm (equivalent to `ffmpeg-normalize --preset streaming-video`), always applied.
+- **Crash-safe `.ts` intermediate** — saves stream as MPEG-TS first (playable at any cut point), then remuxes to `.mp4`.
 - **Automatic quality selection** — picks the best available quality (1080p → 720p → 540p → 360p).
+- **Segment mode** — split long streams into configurable parts (e.g. 20min each) for reliability.
 - **Wait-for-live mode** — polls periodically and starts recording when the user goes live.
-- **Graceful stop & abort** — stop cleanly or abort immediately with `AbortSignal` support.
+- **Graceful stop & abort** — stop cleanly (keeps partial file) or abort immediately with `AbortSignal` support.
 - **Proxy & cookie support** — HTTP/SOCKS proxies and cookie jars for authenticated streams.
 - **Standalone utilities** — use `resolveRoomId()`, `fetchStreamInfo()`, or `createClient()` independently.
 
@@ -40,7 +43,7 @@ bun add tokwatchr
 ```
 
 > [!TIP]
-> `ffmpeg-static` is bundled automatically. If you prefer to use your own `ffmpeg` binary, pass `ffmpegPath` in the options.
+> **System requirements:** [ffmpeg](https://ffmpeg.org) must be installed on your system for audio normalization and `.mp4` output. Without it, the library falls back to raw FLV download. On macOS `brew install ffmpeg`, on Ubuntu `sudo apt install ffmpeg`.
 
 ## Quick start
 
@@ -73,36 +76,43 @@ d.on("progress", (stats) => {
   );
 });
 
-d.on("complete", (result) => {
-  console.log(`Done: ${result.filePath} (${result.sizeMB.toFixed(1)}MB)`);
+d.on("complete", (results) => {
+  for (const r of results) {
+    console.log(`Done: ${r.filePath} (${r.sizeMB.toFixed(1)}MB)`);
+  }
 });
 
 d.on("error", (err) => {
   console.error("Recording failed:", err.message);
 });
 
-// Blocks until stream ends
 await d.start();
 ```
 
-### Wait for live, then record
+### Segmented recording (20min parts, non-blocking remux)
 
 ```ts
-const d = new TikTokLiveDownloader("username", { output: "./vods" });
-
-// Check if live and start immediately, or wait
-d.on("start", (info) => {
-  console.log(`Recording "${info.title}" at ${info.selectedQuality.label}`);
+const d = new TikTokLiveDownloader("username", {
+  output: "./recordings",
+  maxSegmentDuration: 1200, // 20 minutes per segment
 });
 
-await d.start(); // polls until live, then records
+d.on("segment", (result, partNum) => {
+  console.log(`Part ${partNum} done: ${result.filePath}`);
+});
+
+d.on("complete", (results) => {
+  console.log(`All ${results.length} segments complete`);
+});
+
+await d.start();
 ```
 
 ## API
 
 ### `download(username, options?)`
 
-Functional shorthand. Returns a `Promise<DownloadResult>`.
+Functional shorthand. Returns a `Promise<DownloadResult>` (last segment when segmented).
 
 ```ts
 import { download } from "tokwatchr";
@@ -124,7 +134,7 @@ import { TikTokLiveDownloader } from "tokwatchr";
 const d = new TikTokLiveDownloader("username", {
   output: "./vods",
   quality: "hd1",
-  format: "mkv",
+  format: "ts",  // keep as .ts (no remux)
   proxyUrl: "socks5://localhost:1080",
 });
 ```
@@ -135,7 +145,8 @@ const d = new TikTokLiveDownloader("username", {
 |---|---|---|
 | `start` | `StreamInfo` | Stream URL resolved, recording starting |
 | `progress` | `DownloadStats` | Emitted every ~1s during recording |
-| `complete` | `DownloadResult` | Recording finished successfully |
+| `segment` | `[result: DownloadResult, partNumber: number]` | A segment completed (only when `maxSegmentDuration` is set) |
+| `complete` | `DownloadResult[]` | All segments done, remuxed files ready |
 | `error` | `Error` | An error occurred |
 | `stop` | — | Recording was stopped via `stop()` |
 
@@ -146,7 +157,7 @@ const d = new TikTokLiveDownloader("username", {
 | `start()` | `Promise<DownloadResult>` | Wait for live, then record |
 | `startRecording()` | `Promise<DownloadResult>` | Record now (fails if not live) |
 | `waitForLive()` | `Promise<StreamInfo>` | Just wait, don't record |
-| `stop()` | `Promise<void>` | Graceful stop |
+| `stop()` | `Promise<void>` | Graceful stop (remuxes pending segments) |
 | `abort()` | `void` | Immediate abort |
 | `state` | `DownloaderState` | `"idle"` \| `"waiting"` \| `"recording"` \| `"stopping"` \| `"done"` |
 
@@ -155,15 +166,16 @@ const d = new TikTokLiveDownloader("username", {
 ```ts
 interface TikTokLiveDownloaderOptions {
   output?: string;             // Output directory (default: process.cwd())
-  filename?: string;           // Template: {username}, {date}, {time}, {title}
+  filename?: string;           // Template: {username}, {date}, {time}, {title}, {part}
   quality?: "best" | "worst"   // Quality preference (default: "best")
            | "fullhd1" | "hd1" | "sd2" | "sd1";
-  format?: "mp4" | "mkv" | "flv";  // Output container (default: "mp4", "flv" without ffmpeg)
-  useFfmpeg?: boolean;         // Auto-detects ffmpeg-static (default: true)
+  format?: "mp4" | "mkv" | "ts" | "flv";  // Output container (default: "mp4")
+  useFfmpeg?: boolean;         // Auto-detects system ffmpeg (default: true if found)
   ffmpegPath?: string;         // Custom ffmpeg binary path
   ffmpegArgs?: string[];       // Extra ffmpeg args (default: ["-c", "copy"])
   bitrate?: string;            // Re-encode bitrate (e.g. "1M")
   maxDuration?: number;        // Seconds before auto-stop (default: Infinity)
+  maxSegmentDuration?: number; // Split into segments this many seconds long
   checkInterval?: number;      // Poll interval for wait-for-live (ms, default: 30_000)
   proxyUrl?: string;           // HTTP/SOCKS proxy URL
   cookieJar?: CookieJarLike;   // tough-cookie compatible jar
@@ -210,7 +222,7 @@ interface DownloadResult {
   username: string;
   roomId: string;
   quality: StreamQualityKey;
-  format: OutputFormat;
+  format: OutputFormat;    // "mp4" | "mkv" | "ts" | "flv"
   startedAt: Date;
   endedAt: Date;
 }
@@ -241,25 +253,30 @@ Username
   ▼
 Room ID
   │
-  ├─ GET /webcast/room/info/       (fetch stream URLs)
+  ├─ GET /webcast/room/info/       (fetch stream URLs + qualities)
   │
   ▼
-Stream URL  ────►  FLV endpoint
+FLV endpoint  ────►  1080p | 720p | 540p | 360p
   │
-  ├─ ffmpeg -i <url> -c copy output.mp4   (recommended)
-  │    └─ parses ffmpeg stderr for progress
+  ├─ With ffmpeg:
+  │    ffmpeg -i <flv_url> -c copy segment.ts   (crash-safe TS)
+  │      → measure loudness with loudnorm
+  │      → remux with AAC encode + EBU R128 normalization
+  │      → segment.mp4  (final output)
   │
-  └─ HTTP stream → file.flv                (no ffmpeg fallback)
-       └─ stream response.body to disk
+  └─ Without ffmpeg:
+       HTTP stream → file.flv
 ```
 
-The library uses a two-step resolution process:
+The download process:
 
-1. **Room ID resolution** — scrapes the user's TikTok live page for the room ID embedded in the `SIGI_STATE` JSON. Falls back to the `api-live/user/room/` API endpoint.
-2. **Stream URL fetch** — calls `webcast/room/info/` to get the available stream qualities. Selects the best quality available (1080p → 720p → 540p → 360p).
-3. **Download** — either pipes the FLV URL through `ffmpeg` for reliable remuxing to MP4/MKV, or streams the raw FLV data directly to a file.
+1. **Room ID resolution** — scrapes the user's TikTok live page for the room ID embedded in `SIGI_STATE`. Falls back to the `api-live/user/room/` API endpoint.
+2. **Stream URL fetch** — calls `webcast/room/info/` to get available stream qualities. Selects the best available (1080p → 720p → 540p → 360p).
+3. **Download to `.ts`** — saves the raw stream as MPEG-TS, which is playable even if truncated mid-stream.
+4. **Remux with normalization** — two-pass EBU R128 loudnorm to -14 LUFS (streaming standard), AAC encode at 128k, video copied without re-encode.
+5. **Segment loop** — if `maxSegmentDuration` is set, the process repeats: download, remux, emit `segment`, check for live, next segment.
 
-All HTTP requests use `impit` with Chrome TLS fingerprint emulation to bypass TikTok's Cloudflare and bot detection.
+All HTTP requests use `impit` with Chrome TLS fingerprint emulation to bypass bot detection.
 
 ## Advanced usage
 
@@ -288,6 +305,17 @@ const name = renderFilename("{username}={date}_{time}", {
   title: "My Stream Title",
 });
 // → "testuser=20260604_143022"
+```
+
+### Segmented download with custom part template
+
+```ts
+const d = new TikTokLiveDownloader("username", {
+  maxSegmentDuration: 600,  // 10 min segments
+  filename: "{username}_{title}_part{part}",
+});
+// → "officialgeilegisela_Live_Stream_part1.mp4"
+// → "officialgeilegisela_Live_Stream_part2.mp4"
 ```
 
 ### Using a proxy
