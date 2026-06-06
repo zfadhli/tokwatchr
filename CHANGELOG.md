@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0] - 2026-06-05
+
+### Added
+
+- `waiting` event — emitted during room lookup and stream activation polling
+  with elapsed time, giving real-time feedback during the waiting phase
+- `WaitingInfo` interface — exposes `username`, `phase` ("room" or "stream"),
+  and `elapsed` seconds
+- `examples/watch-persistent.ts` — single-user persistent watcher that uses
+  `start()` with the waiting timer
+
 ## [0.4.4] - 2026-06-05
 
 ### Fixed
@@ -71,6 +82,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.5.0]: https://github.com/zfadhli/tokwatchr/compare/v0.4.4...v0.5.0
 [0.4.4]: https://github.com/zfadhli/tokwatchr/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/zfadhli/tokwatchr/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/zfadhli/tokwatchr/compare/v0.4.1...v0.4.2
