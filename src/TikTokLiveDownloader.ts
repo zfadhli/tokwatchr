@@ -584,7 +584,16 @@ export class TikTokLiveDownloader {
 				inputPath,
 				finalPath,
 			);
-			// Remux succeeded — delete temp .ts
+			// Remux succeeded — stat the real output size
+			let realSizeBytes = tsResult.sizeBytes;
+			try {
+				const { statSync } = await import("node:fs");
+				realSizeBytes = statSync(finalPath).size;
+			} catch {
+				// fall back to input size if stat fails
+			}
+
+			// Delete temp .ts
 			try {
 				const { unlinkSync } = await import("node:fs");
 				unlinkSync(inputPath);
@@ -596,12 +605,15 @@ export class TikTokLiveDownloader {
 				filePath: inputPath,
 				outputPath: finalPath,
 				inputSizeMB: tsResult.sizeMB,
+				outputSizeMB: realSizeBytes / (1024 * 1024),
 				status: "completed",
 			});
 
 			return {
 				...tsResult,
 				filePath: finalPath,
+				sizeBytes: realSizeBytes,
+				sizeMB: realSizeBytes / (1024 * 1024),
 				format: finalExt as "mp4" | "mkv",
 			};
 		} catch (err) {

@@ -174,12 +174,14 @@ downloader.on("error", (err) => {
 process.on("SIGINT", async () => {
 	console.log("\n\n  Stopping...");
 	await downloader.stop();
+	await new Promise((resolve) => setImmediate(resolve));
 	process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
 	console.log("\n\n  Stopping...");
 	await downloader.stop();
+	await new Promise((resolve) => setImmediate(resolve));
 	process.exit(0);
 });
 
