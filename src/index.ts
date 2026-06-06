@@ -32,6 +32,7 @@ export type {
 	StreamQualityKey,
 	TikTokLiveDownloaderEvents,
 	TikTokLiveDownloaderOptions,
+	WaitingInfo,
 } from "./types.js";
 
 // ─── Quality utilities ────────────────────────────────────

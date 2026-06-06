@@ -8,6 +8,7 @@
  */
 import { parseArgs } from "node:util";
 import {
+	StreamFetchError,
 	TikTokLiveDownloader,
 	UserNotFoundError,
 	UserOfflineError,
@@ -80,6 +81,14 @@ async function tryDownload(username: string) {
 		});
 		activeDownloaders.set(username, d);
 
+		d.on("waiting", (info) => {
+			const phase =
+				info.phase === "room" ? "Looking for room" : "Waiting for stream";
+			process.stdout.write(
+				`\r  [${timestamp()}] @${username}: ${phase}... ${info.elapsed.toFixed(0)}s`,
+			);
+		});
+
 		d.on("start", (info) => {
 			console.log(
 				`  [${timestamp()}] @${username}: Live! "${info.title}" at ${info.selectedQuality.label}`,
@@ -123,7 +132,11 @@ async function tryDownload(username: string) {
 			return; // No retry for non-existent users
 		}
 
-		if (err instanceof UserOfflineError) {
+		if (err instanceof StreamFetchError) {
+			console.log(
+				`  [${timestamp()}] @${username}: Room found but stream not active, will retry later`,
+			);
+		} else if (err instanceof UserOfflineError) {
 			console.log(`  [${timestamp()}] @${username}: Offline, will retry later`);
 		} else {
 			const message = err instanceof Error ? err.message : String(err);

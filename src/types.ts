@@ -114,7 +114,18 @@ export interface CookieJarLike {
 
 // ─── Events ───────────────────────────────────────────────
 
+export interface WaitingInfo {
+	/** The username being waited on. */
+	username: string;
+	/** Which phase we're waiting in: "room" = looking for a room, "stream" = stream not active. */
+	phase: "room" | "stream";
+	/** Seconds elapsed since this phase started. */
+	elapsed: number;
+}
+
 export interface TikTokLiveDownloaderEvents {
+	/** Emitted periodically while waiting for a room or stream to become active. */
+	waiting: [info: WaitingInfo];
 	/** Emitted when a live stream is detected and we're about to start recording. */
 	start: [info: StreamInfo];
 	/** Emitted periodically (every ~1s) during recording with current stats. */
