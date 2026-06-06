@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.0] - 2026-06-05
+
+### Added
+
+- `remux` event — emitted when remux starts, completes, or fails, giving
+  visibility into the remux phase and allowing detection of silent `.ts`
+  fallbacks
+- `RemuxInfo` interface — exposes `filePath`, `inputSizeMB`, `status`
+  (`"started"` | `"completed"` | `"failed"`), and `outputPath`
+
+### Changed
+
+- `checkInterval` and `timeout` options now accept **seconds** instead of
+  milliseconds, matching `maxDuration` and `maxSegmentDuration` for
+  API consistency (`checkInterval: 180` = 3 min, `timeout: 30` = 30 s)
+
 ## [0.5.0] - 2026-06-05
 
 ### Added
@@ -82,6 +98,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.6.0]: https://github.com/zfadhli/tokwatchr/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/zfadhli/tokwatchr/compare/v0.4.4...v0.5.0
 [0.4.4]: https://github.com/zfadhli/tokwatchr/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/zfadhli/tokwatchr/compare/v0.4.2...v0.4.3
