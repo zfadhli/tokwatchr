@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2] - 2026-06-05
+
+### Fixed
+
+- Added missing `repository` field to `package.json` — required for npm
+  provenance verification during publish
+
 ## [0.4.1] - 2026-06-05
 
 ### Fixed
@@ -46,6 +53,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.4.2]: https://github.com/zfadhli/tokwatchr/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/zfadhli/tokwatchr/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/zfadhli/tokwatchr/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/zfadhli/tokwatchr/compare/v0.2.0...v0.3.0
