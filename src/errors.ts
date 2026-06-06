@@ -5,7 +5,7 @@ export class TikTokLiveError extends Error {
 export class UserOfflineError extends TikTokLiveError {
 	override name = "UserOfflineError";
 	constructor(username: string) {
-		super(`User "${username}" is not currently live`);
+		super(`User "${username}" is not currently live (or does not exist)`);
 	}
 }
 
@@ -20,7 +20,7 @@ export class RoomResolveError extends TikTokLiveError {
 	override name = "RoomResolveError";
 	constructor(username: string, cause?: unknown) {
 		super(
-			`Failed to resolve room ID for "${username}"${cause ? `: ${cause}` : ""}`,
+			`Failed to resolve room ID for "${username}" — may not exist or be offline${cause ? `: ${cause}` : ""}`,
 		);
 	}
 }
