@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.4] - 2026-06-05
+
+### Fixed
+
+- `start()` now polls for stream activation after finding a room — TikTok
+  returns status 4 when a room exists but the stream is not yet broadcasting,
+  causing `StreamFetchError` to be thrown instead of waiting for the stream
+- Reduced default `checkInterval` from 30s to 3 minutes to avoid rate limits
+
 ## [0.4.3] - 2026-06-05
 
 ### Fixed
@@ -62,6 +71,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.4.4]: https://github.com/zfadhli/tokwatchr/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/zfadhli/tokwatchr/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/zfadhli/tokwatchr/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/zfadhli/tokwatchr/compare/v0.4.0...v0.4.1
