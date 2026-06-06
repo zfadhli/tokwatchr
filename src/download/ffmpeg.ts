@@ -12,6 +12,13 @@ export interface FfmpegDownloadOptions {
 	signal?: AbortSignal;
 	onProgress?: (stats: DownloadStats) => void;
 	maxDuration?: number;
+	/**
+	 * Startup timeout in ms. If ffmpeg produces no stderr output within
+	 * this window, it is killed and the promise rejects. Prevents
+	 * indefinite hangs on bad/ stalled stream URLs.
+	 * @default 30_000
+	 */
+	timeout?: number;
 }
 
 /**
@@ -82,6 +89,7 @@ export async function downloadWithFfmpeg(
 		signal,
 		onProgress,
 		maxDuration,
+		timeout = 30_000,
 	} = options;
 
 	const ffmpegArgs: string[] = [
@@ -135,8 +143,30 @@ export async function downloadWithFfmpeg(
 
 		signal?.addEventListener("abort", onAbort, { once: true });
 
+		// Startup timeout — if ffmpeg produces no stderr output within
+		// `timeout` ms, it likely stalled on a bad URL. Kill it so the
+		// caller doesn't hang indefinitely.
+		let firstDataTimer: ReturnType<typeof setTimeout> | null = setTimeout(
+			() => {
+				firstDataTimer = null;
+				signal?.removeEventListener("abort", onAbort);
+				proc.kill("SIGTERM");
+				reject(
+					new FfmpegError(
+						`ffmpeg produced no output within ${timeout}ms — check the stream URL`,
+					),
+				);
+			},
+			timeout,
+		);
+
 		// Parse stderr for progress
 		proc.stderr?.on("data", (chunk: Buffer | string) => {
+			// Clear first-data timer on first output — ffmpeg is working
+			if (firstDataTimer) {
+				clearTimeout(firstDataTimer);
+				firstDataTimer = null;
+			}
 			const text = typeof chunk === "string" ? chunk : chunk.toString("utf-8");
 			stderrBuffer += text;
 
@@ -165,11 +195,19 @@ export async function downloadWithFfmpeg(
 		});
 
 		proc.on("error", (err) => {
+			if (firstDataTimer) {
+				clearTimeout(firstDataTimer);
+				firstDataTimer = null;
+			}
 			signal?.removeEventListener("abort", onAbort);
 			reject(new FfmpegError(err.message));
 		});
 
 		proc.on("close", (code) => {
+			if (firstDataTimer) {
+				clearTimeout(firstDataTimer);
+				firstDataTimer = null;
+			}
 			signal?.removeEventListener("abort", onAbort);
 
 			// When the user aborted, resolve with whatever we got.

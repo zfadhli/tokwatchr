@@ -448,6 +448,7 @@ export class TikTokLiveDownloader {
 				onProgress,
 				maxDuration:
 					segmentMaxDuration < Infinity ? segmentMaxDuration : undefined,
+				timeout: this.options.timeout,
 			});
 
 			return {
