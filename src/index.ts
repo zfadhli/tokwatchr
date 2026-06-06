@@ -15,6 +15,7 @@ export {
 	RoomResolveError,
 	StreamFetchError,
 	TikTokLiveError,
+	UserNotFoundError,
 	UserOfflineError,
 } from "./errors.js";
 export type { DownloadFunctionOptions } from "./TikTokLiveDownloader.js";

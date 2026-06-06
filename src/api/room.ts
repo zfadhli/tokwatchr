@@ -1,5 +1,5 @@
 import type { Impit } from "impit";
-import { RoomResolveError } from "../errors.js";
+import { RoomResolveError, UserNotFoundError } from "../errors.js";
 
 export interface RoomResolveOptions {
 	impIt?: Impit;
@@ -10,13 +10,38 @@ export interface RoomResolveOptions {
  * TikTok API endpoint patterns for room ID resolution.
  */
 const TIKTOK_LIVE_URL = "https://www.tiktok.com/@{username}/live";
+const TIKTOK_PROFILE_URL = "https://www.tiktok.com/@{username}";
 const TIKTOK_API_ROOM_URL =
 	"https://www.tiktok.com/api-live/user/room/?aid=1988&uniqueId={username}&sourceType=54";
+
+/**
+ * Check whether a TikTok username exists by hitting the profile page.
+ * Throws UserNotFoundError if the account doesn't exist.
+ */
+async function checkUserExists(
+	username: string,
+	impIt: Impit,
+	signal?: AbortSignal,
+): Promise<void> {
+	const url = TIKTOK_PROFILE_URL.replace("{username}", username);
+	const response = await impIt.fetch(url, {
+		headers: {
+			Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+			"Accept-Language": "en-US,en;q=0.9",
+		},
+		signal,
+	});
+
+	if (response.status === 404) {
+		throw new UserNotFoundError(username);
+	}
+}
 
 /**
  * Resolve a TikTok username to a live room ID.
  *
  * Strategy:
+ * 0. Verify the user exists (profile page check).
  * 1. Scrape the user's live page HTML for the room ID in SIGI_STATE.
  * 2. Fall back to the TikTok API.
  * 3. Throw if neither works.
@@ -27,6 +52,9 @@ export async function resolveRoomId(
 	options: RoomResolveOptions = {},
 ): Promise<string> {
 	const cleanUsername = username.replace(/^@/, "").trim();
+
+	// Strategy 0: Verify the user exists
+	await checkUserExists(cleanUsername, impIt, options.signal);
 
 	// Strategy 1: Scrape the live page
 	const roomId = await tryScrapeRoomId(cleanUsername, impIt, options.signal);

@@ -8,7 +8,11 @@
  *   bun run examples/download.ts username --segment-duration 600  (10min segments)
  */
 import { parseArgs } from "node:util";
-import { TikTokLiveDownloader, UserOfflineError } from "../src/index.js";
+import {
+	TikTokLiveDownloader,
+	UserNotFoundError,
+	UserOfflineError,
+} from "../src/index.js";
 
 const args = parseArgs({
 	args: process.argv.slice(2),
@@ -122,6 +126,12 @@ downloader.on("complete", (results) => {
 });
 
 downloader.on("error", (err) => {
+	if (err instanceof UserNotFoundError) {
+		console.log(`\n  ${err.message}`);
+		process.exit(1);
+		return;
+	}
+
 	if (err instanceof UserOfflineError) {
 		console.log(`\n  ${err.message}`);
 		console.log("  Waiting for stream to start...\n");

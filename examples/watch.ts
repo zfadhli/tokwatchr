@@ -7,7 +7,11 @@
  *   bun run examples/watch.ts user1 user2 --output ./vods --segment-duration 1200
  */
 import { parseArgs } from "node:util";
-import { TikTokLiveDownloader, UserOfflineError } from "../src/index.js";
+import {
+	TikTokLiveDownloader,
+	UserNotFoundError,
+	UserOfflineError,
+} from "../src/index.js";
 
 const args = parseArgs({
 	args: process.argv.slice(2),
@@ -109,6 +113,14 @@ async function tryDownload(username: string) {
 			`  [${timestamp()}] @${username}: Done — ${results.length} segment(s), ${totalMB.toFixed(1)}MB total`,
 		);
 	} catch (err) {
+		if (err instanceof UserNotFoundError) {
+			console.log(
+				`  [${timestamp()}] @${username}: User not found — will not retry`,
+			);
+			activeDownloads.delete(username);
+			return; // No retry for non-existent users
+		}
+
 		if (err instanceof UserOfflineError) {
 			console.log(`  [${timestamp()}] @${username}: Offline, will retry later`);
 		} else {

@@ -9,7 +9,7 @@ import { resolveRoomId } from "./api/room.js";
 import { fetchStreamInfo } from "./api/stream.js";
 import { downloadWithFfmpeg } from "./download/ffmpeg.js";
 import { downloadRawHttp } from "./download/raw-http.js";
-import { UserOfflineError } from "./errors.js";
+import { UserNotFoundError, UserOfflineError } from "./errors.js";
 import type {
 	DownloaderState,
 	DownloadResult,
@@ -332,7 +332,12 @@ export class TikTokLiveDownloader {
 			return await resolveRoomId(this.username, this.impIt, {
 				signal: this.abortController.signal,
 			});
-		} catch {
+		} catch (error) {
+			// User-not-found should fail fast, not retry
+			if (error instanceof UserNotFoundError) {
+				throw error;
+			}
+
 			// Check if the user is offline (room/info will tell us)
 			try {
 				// Try fetching room info directly to see if user is live

@@ -9,6 +9,13 @@ export class UserOfflineError extends TikTokLiveError {
 	}
 }
 
+export class UserNotFoundError extends TikTokLiveError {
+	override name = "UserNotFoundError";
+	constructor(username: string) {
+		super(`User "${username}" does not exist on TikTok`);
+	}
+}
+
 export class RoomResolveError extends TikTokLiveError {
 	override name = "RoomResolveError";
 	constructor(username: string, cause?: unknown) {
