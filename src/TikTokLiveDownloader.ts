@@ -320,6 +320,16 @@ export class TikTokLiveDownloader {
 			// biome-ignore lint/style/noNonNullAssertion: at least one result
 			return finalResults[finalResults.length - 1]!;
 		} catch (err) {
+			// One-shot waiting feedback for startRecording() users
+			// when the stream isn't active yet.
+			if (err instanceof StreamFetchError) {
+				this.emit("waiting", {
+					username: this.username,
+					phase: "stream",
+					elapsed: 0,
+				});
+			}
+
 			// Await any background remuxes before shutting down,
 			// so they can finish producing .mp4 and delete temp .ts files.
 			if (pendingRemuxes.length > 0) {
@@ -368,6 +378,7 @@ export class TikTokLiveDownloader {
 	private async resolveRoomIdWithRetry(): Promise<string> {
 		const interval = this.options.checkInterval;
 		const maxInterval = Math.max(interval, 180_000);
+		const waitStart = Date.now();
 
 		while (true) {
 			this.abortController.signal?.throwIfAborted();
@@ -377,6 +388,11 @@ export class TikTokLiveDownloader {
 				return roomId;
 			}
 
+			this.emit("waiting", {
+				username: this.username,
+				phase: "room",
+				elapsed: (Date.now() - waitStart) / 1_000,
+			});
 			await sleep(maxInterval);
 		}
 	}
@@ -401,6 +417,7 @@ export class TikTokLiveDownloader {
 	private async pollStreamInfo(roomId: string): Promise<StreamInfo> {
 		const interval = this.options.checkInterval;
 		const maxInterval = Math.max(interval, 180_000);
+		const waitStart = Date.now();
 
 		while (true) {
 			this.abortController.signal?.throwIfAborted();
@@ -409,6 +426,11 @@ export class TikTokLiveDownloader {
 				return await this.fetchStreamInfo(roomId);
 			} catch (err) {
 				if (err instanceof StreamFetchError) {
+					this.emit("waiting", {
+						username: this.username,
+						phase: "stream",
+						elapsed: (Date.now() - waitStart) / 1_000,
+					});
 					await sleep(maxInterval);
 					continue;
 				}

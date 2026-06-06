@@ -77,6 +77,14 @@ const downloader = new TikTokLiveDownloader(username, {
 
 // ─── Wire up event handlers ──────────────────────────────
 
+downloader.on("waiting", (info) => {
+	const phase =
+		info.phase === "room" ? "Looking for room" : "Waiting for stream to start";
+	process.stdout.write(
+		`\r  @${info.username}: ${phase}... ${info.elapsed.toFixed(0)}s`,
+	);
+});
+
 downloader.on("start", (info) => {
 	console.log("");
 	console.log(`  Username:  ${info.username}`);
