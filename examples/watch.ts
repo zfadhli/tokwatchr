@@ -52,6 +52,7 @@ Examples:
 console.log(`\n  Watching ${usernames.length} user(s) for livestreams...\n`);
 
 const activeDownloads = new Set<string>();
+const activeDownloaders = new Map<string, TikTokLiveDownloader>();
 
 async function tryDownload(username: string) {
 	if (activeDownloads.has(username)) return;
@@ -77,6 +78,7 @@ async function tryDownload(username: string) {
 				? Number.parseInt(args.values["segment-duration"], 10)
 				: undefined,
 		});
+		activeDownloaders.set(username, d);
 
 		d.on("start", (info) => {
 			console.log(
@@ -129,6 +131,7 @@ async function tryDownload(username: string) {
 		}
 	} finally {
 		activeDownloads.delete(username);
+		activeDownloaders.delete(username);
 	}
 
 	setTimeout(() => tryDownload(username), 60_000);
@@ -138,13 +141,15 @@ for (const username of usernames) {
 	tryDownload(username);
 }
 
-process.on("SIGINT", () => {
+process.on("SIGINT", async () => {
 	console.log("\n\n  Stopping watcher...");
+	await Promise.all([...activeDownloaders.values()].map((d) => d.stop()));
 	process.exit(0);
 });
 
-process.on("SIGTERM", () => {
+process.on("SIGTERM", async () => {
 	console.log("\n  Stopping watcher...");
+	await Promise.all([...activeDownloaders.values()].map((d) => d.stop()));
 	process.exit(0);
 });
 
