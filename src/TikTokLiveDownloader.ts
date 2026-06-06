@@ -77,7 +77,7 @@ export class TikTokLiveDownloader {
 		this.impIt = createClient({
 			browser: this.options.browser,
 			proxyUrl: this.options.proxyUrl,
-			timeout: this.options.timeout,
+			timeout: this.options.timeout * 1_000,
 			headers: this.options.headers,
 			cookieJar: this.options.cookieJar,
 		});
@@ -500,7 +500,7 @@ export class TikTokLiveDownloader {
 				onProgress,
 				maxDuration:
 					segmentMaxDuration < Infinity ? segmentMaxDuration : undefined,
-				timeout: this.options.timeout,
+				timeout: this.options.timeout * 1_000,
 			});
 
 			return {
