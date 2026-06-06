@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1] - 2026-06-05
+
+### Fixed
+
+- `UserOfflineError` and `RoomResolveError` messages now mention that the
+  username may not exist (not just that it's offline), since TikTok often
+  returns 200 with "user not found" body instead of HTTP 404
+
 ## [0.6.0] - 2026-06-05
 
 ### Added
@@ -98,6 +106,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.6.1]: https://github.com/zfadhli/tokwatchr/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/zfadhli/tokwatchr/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/zfadhli/tokwatchr/compare/v0.4.4...v0.5.0
 [0.4.4]: https://github.com/zfadhli/tokwatchr/compare/v0.4.3...v0.4.4
