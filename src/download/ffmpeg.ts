@@ -201,6 +201,19 @@ export async function downloadWithFfmpeg(
 				firstDataTimer = null;
 			}
 			signal?.removeEventListener("abort", onAbort);
+			// spawn's signal option emits AbortError when the signal
+			// is already aborted at spawn time or fires mid-flight.
+			// Don't reject — resolve with partial data instead, same
+			// as the close handler does for aborted downloads.
+			if (err.name === "AbortError") {
+				aborted = true;
+				resolve({
+					sizeBytes,
+					duration,
+					format: outputPath.endsWith(".mkv") ? "mkv" : "mp4",
+				});
+				return;
+			}
 			reject(new FfmpegError(err.message));
 		});
 
