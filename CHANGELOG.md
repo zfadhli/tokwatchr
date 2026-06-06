@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.2] - 2026-06-05
+
+### Fixed
+
+- `timeout` option for HTTP client (impit) now correctly converted from seconds
+  to milliseconds — the v0.6.0 time-unit change broke all HTTP requests by
+  passing 30 (seconds) as 30ms to impit, causing immediate timeouts
+
 ## [0.6.1] - 2026-06-05
 
 ### Fixed
@@ -106,6 +114,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.6.2]: https://github.com/zfadhli/tokwatchr/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/zfadhli/tokwatchr/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/zfadhli/tokwatchr/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/zfadhli/tokwatchr/compare/v0.4.4...v0.5.0

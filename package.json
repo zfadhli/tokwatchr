@@ -1,6 +1,6 @@
 {
 	"name": "tokwatchr",
-	"version": "0.6.1",
+	"version": "0.6.2",
 	"description": "Download TikTok livestreams. Given a username, download the livestream.",
 	"type": "module",
 	"main": "./dist/index.mjs",
