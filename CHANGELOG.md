@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0] - 2026-06-05
+
+### Changed
+
+- Migrated build system from `tsc` to `tsdown` — faster rolldown-based bundling
+  with automatic `.d.ts` generation
+- Package exports now use `.mjs` and `.d.mts` extensions for unambiguous ESM
+- Peer dependency updated to TypeScript `^6`
+
+### Added
+
+- CI workflow runs lint, typecheck, and build on every push and PR
+- Release workflow publishes to npm when a `v*` tag is pushed
+
 ## [0.3.0] - 2026-06-05
 
 ### Fixed
@@ -24,5 +38,6 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.4.0]: https://github.com/zfadhli/tokwatchr/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/zfadhli/tokwatchr/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/zfadhli/tokwatchr/compare/v0.1.1...v0.2.0
