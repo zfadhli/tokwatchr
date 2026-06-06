@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.3] - 2026-06-05
+
+### Fixed
+
+- Eliminated a race condition in abort handling where an `aborted` flag
+  set by `addEventListener` could lose the race against Node.js's internal
+  process kill, causing a spurious error on Ctrl+C — now uses synchronous
+  `signal?.aborted` instead
+
 ## [0.4.2] - 2026-06-05
 
 ### Fixed
@@ -53,6 +62,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.4.3]: https://github.com/zfadhli/tokwatchr/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/zfadhli/tokwatchr/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/zfadhli/tokwatchr/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/zfadhli/tokwatchr/compare/v0.3.0...v0.4.0
