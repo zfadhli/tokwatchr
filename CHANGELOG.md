@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1] - 2026-06-05
+
+### Fixed
+
+- `stop()` no longer surfaces an `FFmpeg error: The operation was aborted.`
+  error on Ctrl+C — `AbortError` from spawn's signal option is now caught
+  and handled gracefully, resolving with partial data
+
 ## [0.4.0] - 2026-06-05
 
 ### Changed
@@ -38,6 +46,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.4.1]: https://github.com/zfadhli/tokwatchr/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/zfadhli/tokwatchr/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/zfadhli/tokwatchr/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/zfadhli/tokwatchr/compare/v0.1.1...v0.2.0
