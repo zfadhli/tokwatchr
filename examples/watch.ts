@@ -173,12 +173,14 @@ for (const username of usernames) {
 process.on("SIGINT", async () => {
 	console.log("\n\n  Stopping watcher...");
 	await Promise.all([...activeDownloaders.values()].map((d) => d.stop()));
+	await new Promise((resolve) => setImmediate(resolve));
 	process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
 	console.log("\n  Stopping watcher...");
 	await Promise.all([...activeDownloaders.values()].map((d) => d.stop()));
+	await new Promise((resolve) => setImmediate(resolve));
 	process.exit(0);
 });
 

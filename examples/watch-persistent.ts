@@ -59,12 +59,14 @@ let activeDownloader: TikTokLiveDownloader | null = null;
 process.on("SIGINT", async () => {
 	console.log("\n\n  Stopping...");
 	await activeDownloader?.stop();
+	await new Promise((resolve) => setImmediate(resolve));
 	process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
 	console.log("\n  Stopping...");
 	await activeDownloader?.stop();
+	await new Promise((resolve) => setImmediate(resolve));
 	process.exit(0);
 });
 

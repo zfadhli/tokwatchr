@@ -128,6 +128,8 @@ export interface RemuxInfo {
 	filePath: string;
 	/** Input file size in MB. */
 	inputSizeMB: number;
+	/** Output file size in MB. Only set when status is "completed". */
+	outputSizeMB?: number;
 	/** Remux status: started → completed (with outputPath) or failed (keeping .ts). */
 	status: "started" | "completed" | "failed";
 	/** Output file path. Only set when status is "completed". */
