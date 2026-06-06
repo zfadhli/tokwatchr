@@ -122,35 +122,12 @@ export async function downloadWithFfmpeg(
 		let sizeBytes = 0;
 		let duration = 0;
 
-		const abortHandler = () => {
-			// SIGTERM tells ffmpeg to flush its output (moov atom, etc.)
-			// and exit cleanly. This produces a playable file even when
-			// stopped mid-recording.
-			proc.kill("SIGTERM");
-			// Safety net: if ffmpeg doesn't respond, force-kill after 15s.
-			// The close handler will still fire and resolve with partial data.
-			setTimeout(() => {
-				if (proc.exitCode === null) {
-					proc.kill("SIGKILL");
-				}
-			}, 15_000);
-		};
-
-		let aborted = false;
-		const onAbort = () => {
-			aborted = true;
-			abortHandler();
-		};
-
-		signal?.addEventListener("abort", onAbort, { once: true });
-
 		// Startup timeout — if ffmpeg produces no stderr output within
 		// `timeout` ms, it likely stalled on a bad URL. Kill it so the
 		// caller doesn't hang indefinitely.
 		let firstDataTimer: ReturnType<typeof setTimeout> | null = setTimeout(
 			() => {
 				firstDataTimer = null;
-				signal?.removeEventListener("abort", onAbort);
 				proc.kill("SIGTERM");
 				reject(
 					new FfmpegError(
@@ -200,13 +177,11 @@ export async function downloadWithFfmpeg(
 				clearTimeout(firstDataTimer);
 				firstDataTimer = null;
 			}
-			signal?.removeEventListener("abort", onAbort);
 			// spawn's signal option emits AbortError when the signal
 			// is already aborted at spawn time or fires mid-flight.
-			// Don't reject — resolve with partial data instead, same
-			// as the close handler does for aborted downloads.
+			// Resolve with partial data instead of rejecting — the
+			// close handler will also fire and see signal?.aborted.
 			if (err.name === "AbortError") {
-				aborted = true;
 				resolve({
 					sizeBytes,
 					duration,
@@ -222,12 +197,14 @@ export async function downloadWithFfmpeg(
 				clearTimeout(firstDataTimer);
 				firstDataTimer = null;
 			}
-			signal?.removeEventListener("abort", onAbort);
 
 			// When the user aborted, resolve with whatever we got.
-			// ffmpeg receives SIGTERM first, which tells it to flush
-			// its output and exit cleanly, producing a playable file.
-			if (aborted) {
+			// spawn's signal option sends SIGTERM, which tells ffmpeg
+			// to flush its output and exit cleanly.
+			// Use signal?.aborted directly instead of a listener flag
+			// to avoid a race between listener registration order and
+			// the async close event.
+			if (signal?.aborted) {
 				resolve({
 					sizeBytes,
 					duration,
