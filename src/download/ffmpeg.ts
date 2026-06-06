@@ -13,10 +13,10 @@ export interface FfmpegDownloadOptions {
 	onProgress?: (stats: DownloadStats) => void;
 	maxDuration?: number;
 	/**
-	 * Startup timeout in ms. If ffmpeg produces no stderr output within
+	 * Startup timeout in seconds. If ffmpeg produces no stderr output within
 	 * this window, it is killed and the promise rejects. Prevents
 	 * indefinite hangs on bad/ stalled stream URLs.
-	 * @default 30_000
+	 * @default 30
 	 */
 	timeout?: number;
 }
@@ -89,7 +89,7 @@ export async function downloadWithFfmpeg(
 		signal,
 		onProgress,
 		maxDuration,
-		timeout = 30_000,
+		timeout = 30,
 	} = options;
 
 	const ffmpegArgs: string[] = [
@@ -123,7 +123,7 @@ export async function downloadWithFfmpeg(
 		let duration = 0;
 
 		// Startup timeout — if ffmpeg produces no stderr output within
-		// `timeout` ms, it likely stalled on a bad URL. Kill it so the
+		// `timeout` seconds, it likely stalled on a bad URL. Kill it so the
 		// caller doesn't hang indefinitely.
 		let firstDataTimer: ReturnType<typeof setTimeout> | null = setTimeout(
 			() => {
@@ -131,11 +131,11 @@ export async function downloadWithFfmpeg(
 				proc.kill("SIGTERM");
 				reject(
 					new FfmpegError(
-						`ffmpeg produced no output within ${timeout}ms — check the stream URL`,
+						`ffmpeg produced no output within ${timeout}s — check the stream URL`,
 					),
 				);
 			},
-			timeout,
+			timeout * 1_000,
 		);
 
 		// Parse stderr for progress

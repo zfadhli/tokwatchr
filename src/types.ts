@@ -85,7 +85,7 @@ export interface TikTokLiveDownloaderOptions {
 	maxDuration?: number;
 	/** Split recording into segments of this many seconds (default: Infinity = single file). */
 	maxSegmentDuration?: number;
-	/** Polling interval in ms when waiting for live (default: 180_000). */
+	/** Polling interval in seconds when waiting for live (default: 180). */
 	checkInterval?: number;
 	/** HTTP proxy URL (supports http, https, socks4, socks5). */
 	proxyUrl?: string;
@@ -93,7 +93,7 @@ export interface TikTokLiveDownloaderOptions {
 	cookieJar?: CookieJarLike;
 	/** Browser to emulate (default: "chrome"). */
 	browser?: Browser;
-	/** Request timeout in ms (default: 30_000). */
+	/** Request timeout in seconds (default: 30). */
 	timeout?: number;
 	/** Extra headers to send with every request. */
 	headers?: Record<string, string>;
@@ -123,9 +123,22 @@ export interface WaitingInfo {
 	elapsed: number;
 }
 
+export interface RemuxInfo {
+	/** Input .ts file path. */
+	filePath: string;
+	/** Input file size in MB. */
+	inputSizeMB: number;
+	/** Remux status: started → completed (with outputPath) or failed (keeping .ts). */
+	status: "started" | "completed" | "failed";
+	/** Output file path. Only set when status is "completed". */
+	outputPath?: string;
+}
+
 export interface TikTokLiveDownloaderEvents {
 	/** Emitted periodically while waiting for a room or stream to become active. */
 	waiting: [info: WaitingInfo];
+	/** Emitted when a remux operation starts, completes, or fails. */
+	remux: [info: RemuxInfo];
 	/** Emitted when a live stream is detected and we're about to start recording. */
 	start: [info: StreamInfo];
 	/** Emitted periodically (every ~1s) during recording with current stats. */
