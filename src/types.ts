@@ -85,7 +85,7 @@ export interface TikTokLiveDownloaderOptions {
 	maxDuration?: number;
 	/** Split recording into segments of this many seconds (default: Infinity = single file). */
 	maxSegmentDuration?: number;
-	/** Polling interval in ms when waiting for live (default: 30_000). */
+	/** Polling interval in ms when waiting for live (default: 180_000). */
 	checkInterval?: number;
 	/** HTTP proxy URL (supports http, https, socks4, socks5). */
 	proxyUrl?: string;
