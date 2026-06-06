@@ -10,7 +10,7 @@
  *
  * Usage:
  *   bun run examples/watch-persistent.ts officialgeilegisela
- *   bun run examples/watch-persistent.ts username -o ./vods --check-interval 60000
+ *   bun run examples/watch-persistent.ts username -o ./vods --check-interval 60
  */
 import { parseArgs } from "node:util";
 import { TikTokLiveDownloader } from "../src/index.js";
@@ -40,12 +40,12 @@ Options:
   -o, --output <dir>          Output directory (default: ./recordings)
   -q, --quality <key>         Quality: best | worst | fullhd1 | hd1 | sd2 | sd1
   -f, --format <ext>          Output format: mp4 | mkv | ts | flv (default: mp4)
-  --check-interval <ms>       Poll interval for wait-for-live (default: 180000)
+  --check-interval <seconds>  Poll interval for wait-for-live (default: 180)
   -h, --help                  Show this help
 
 Examples:
   bun run examples/watch-persistent.ts officialgeilegisela
-  bun run examples/watch-persistent.ts username -o ./vods --check-interval 60000
+  bun run examples/watch-persistent.ts username -o ./vods --check-interval 60
 `);
 	process.exit(username ? 0 : 1);
 }
@@ -97,6 +97,18 @@ async function run() {
 			process.stdout.write(
 				`\r  @${username}: ${phase}... ${info.elapsed.toFixed(0)}s`,
 			);
+		});
+
+		d.on("remux", (info) => {
+			if (info.status === "started") {
+				process.stdout.write(`\r  @${username}: Remuxing ${info.filePath}...`);
+			} else if (info.status === "completed") {
+				console.log(`\n  @${username}: Remux done: ${info.outputPath}`);
+			} else {
+				console.warn(
+					`\n  @${username}: Remux failed, keeping .ts: ${info.filePath}`,
+				);
+			}
 		});
 
 		d.on("start", (info) => {

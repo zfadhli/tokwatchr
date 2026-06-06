@@ -85,6 +85,16 @@ downloader.on("waiting", (info) => {
 	);
 });
 
+downloader.on("remux", (info) => {
+	if (info.status === "started") {
+		process.stdout.write(`\r  Remuxing ${info.filePath}...`);
+	} else if (info.status === "completed") {
+		console.log(`\n  Remux done: ${info.outputPath}`);
+	} else {
+		console.warn(`\n  Remux failed, keeping .ts: ${info.filePath}`);
+	}
+});
+
 downloader.on("start", (info) => {
 	console.log("");
 	console.log(`  Username:  ${info.username}`);

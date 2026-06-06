@@ -89,6 +89,22 @@ async function tryDownload(username: string) {
 			);
 		});
 
+		d.on("remux", (info) => {
+			if (info.status === "started") {
+				process.stdout.write(
+					`\r  [${timestamp()}] @${username}: Remuxing ${info.filePath}...`,
+				);
+			} else if (info.status === "completed") {
+				console.log(
+					`\n  [${timestamp()}] @${username}: Remux done: ${info.outputPath}`,
+				);
+			} else {
+				console.warn(
+					`\n  [${timestamp()}] @${username}: Remux failed, keeping .ts: ${info.filePath}`,
+				);
+			}
+		});
+
 		d.on("start", (info) => {
 			console.log(
 				`  [${timestamp()}] @${username}: Live! "${info.title}" at ${info.selectedQuality.label}`,

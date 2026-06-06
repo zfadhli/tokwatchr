@@ -28,6 +28,7 @@ export type {
 	DownloadStats,
 	OutputFormat,
 	QualityOption,
+	RemuxInfo,
 	StreamInfo,
 	StreamQualityKey,
 	TikTokLiveDownloaderEvents,

@@ -36,11 +36,11 @@ const DEFAULT_OPTIONS: ResolvedOptions = {
 	bitrate: null,
 	maxDuration: Infinity,
 	maxSegmentDuration: Infinity,
-	checkInterval: 180_000,
+	checkInterval: 180,
 	proxyUrl: null,
 	cookieJar: null,
 	browser: "chrome",
-	timeout: 30_000,
+	timeout: 30,
 	headers: {},
 	onProgress: null,
 	onStart: null,
@@ -377,7 +377,7 @@ export class TikTokLiveDownloader {
 
 	private async resolveRoomIdWithRetry(): Promise<string> {
 		const interval = this.options.checkInterval;
-		const maxInterval = Math.max(interval, 180_000);
+		const maxInterval = Math.max(interval, 180);
 		const waitStart = Date.now();
 
 		while (true) {
@@ -393,7 +393,7 @@ export class TikTokLiveDownloader {
 				phase: "room",
 				elapsed: (Date.now() - waitStart) / 1_000,
 			});
-			await sleep(maxInterval);
+			await sleep(maxInterval * 1_000);
 		}
 	}
 
@@ -416,7 +416,7 @@ export class TikTokLiveDownloader {
 	 */
 	private async pollStreamInfo(roomId: string): Promise<StreamInfo> {
 		const interval = this.options.checkInterval;
-		const maxInterval = Math.max(interval, 180_000);
+		const maxInterval = Math.max(interval, 180);
 		const waitStart = Date.now();
 
 		while (true) {
@@ -431,7 +431,7 @@ export class TikTokLiveDownloader {
 						phase: "stream",
 						elapsed: (Date.now() - waitStart) / 1_000,
 					});
-					await sleep(maxInterval);
+					await sleep(maxInterval * 1_000);
 					continue;
 				}
 				throw err;
@@ -572,6 +572,12 @@ export class TikTokLiveDownloader {
 
 		if (finalPath === inputPath) return tsResult;
 
+		this.emit("remux", {
+			filePath: inputPath,
+			inputSizeMB: tsResult.sizeMB,
+			status: "started",
+		});
+
 		try {
 			await this.remuxAndNormalize(
 				this.options.ffmpegPath,
@@ -585,6 +591,14 @@ export class TikTokLiveDownloader {
 			} catch {
 				// ignore cleanup failure
 			}
+
+			this.emit("remux", {
+				filePath: inputPath,
+				outputPath: finalPath,
+				inputSizeMB: tsResult.sizeMB,
+				status: "completed",
+			});
+
 			return {
 				...tsResult,
 				filePath: finalPath,
@@ -595,6 +609,13 @@ export class TikTokLiveDownloader {
 			console.warn(
 				`tokwatchr: remux failed for ${inputPath}, keeping .ts as fallback: ${msg}`,
 			);
+
+			this.emit("remux", {
+				filePath: inputPath,
+				inputSizeMB: tsResult.sizeMB,
+				status: "failed",
+			});
+
 			return tsResult;
 		}
 	}
