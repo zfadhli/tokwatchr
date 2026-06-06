@@ -9,7 +9,11 @@ import { resolveRoomId } from "./api/room.js";
 import { fetchStreamInfo } from "./api/stream.js";
 import { downloadWithFfmpeg } from "./download/ffmpeg.js";
 import { downloadRawHttp } from "./download/raw-http.js";
-import { UserNotFoundError, UserOfflineError } from "./errors.js";
+import {
+	StreamFetchError,
+	UserNotFoundError,
+	UserOfflineError,
+} from "./errors.js";
 import type {
 	DownloaderState,
 	DownloadResult,
@@ -32,7 +36,7 @@ const DEFAULT_OPTIONS: ResolvedOptions = {
 	bitrate: null,
 	maxDuration: Infinity,
 	maxSegmentDuration: Infinity,
-	checkInterval: 30_000,
+	checkInterval: 180_000,
 	proxyUrl: null,
 	cookieJar: null,
 	browser: "chrome",
@@ -259,7 +263,9 @@ export class TikTokLiveDownloader {
 
 			// Phase 2: Get stream info (refreshed per segment to avoid stale URLs)
 			this.setState("waiting");
-			const firstInfo = await this.fetchStreamInfo(roomId);
+			const firstInfo = waitForLive
+				? await this.pollStreamInfo(roomId)
+				: await this.fetchStreamInfo(roomId);
 
 			const segmentEnabled =
 				this.options.maxSegmentDuration > 0 &&
@@ -361,7 +367,7 @@ export class TikTokLiveDownloader {
 
 	private async resolveRoomIdWithRetry(): Promise<string> {
 		const interval = this.options.checkInterval;
-		const maxInterval = Math.max(interval, 30_000);
+		const maxInterval = Math.max(interval, 180_000);
 
 		while (true) {
 			this.abortController.signal?.throwIfAborted();
@@ -385,6 +391,30 @@ export class TikTokLiveDownloader {
 		this.options.onStart?.(info);
 
 		return info;
+	}
+
+	/**
+	 * Poll for stream info until the stream becomes active.
+	 * Used in waitForLive mode when the room exists but the stream
+	 * has not yet started broadcasting.
+	 */
+	private async pollStreamInfo(roomId: string): Promise<StreamInfo> {
+		const interval = this.options.checkInterval;
+		const maxInterval = Math.max(interval, 180_000);
+
+		while (true) {
+			this.abortController.signal?.throwIfAborted();
+
+			try {
+				return await this.fetchStreamInfo(roomId);
+			} catch (err) {
+				if (err instanceof StreamFetchError) {
+					await sleep(maxInterval);
+					continue;
+				}
+				throw err;
+			}
+		}
 	}
 
 	/**
