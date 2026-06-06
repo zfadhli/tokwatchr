@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.3] - 2026-06-05
+
+### Fixed
+
+- `DownloadResult` and `remux` event now report the real `.mp4` output file size
+  instead of the `.ts` input size — the AAC re-encode produces a different file
+  size, and `...tsResult` was passing through the stale input size
+- `remux` events now fire before `process.exit(0)` in example scripts — added
+  `setImmediate` flush to give pending microtasks time to dispatch
+
 ## [0.6.2] - 2026-06-05
 
 ### Fixed
@@ -114,6 +124,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.6.3]: https://github.com/zfadhli/tokwatchr/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/zfadhli/tokwatchr/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/zfadhli/tokwatchr/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/zfadhli/tokwatchr/compare/v0.5.0...v0.6.0
