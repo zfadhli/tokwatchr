@@ -115,6 +115,7 @@ export async function downloadWithFfmpeg(
 	return new Promise((resolve, reject) => {
 		const proc = spawn(ffmpegPath, ffmpegArgs, {
 			stdio: ["ignore", "pipe", "pipe"],
+			signal,
 		});
 
 		let stderrBuffer = "";
