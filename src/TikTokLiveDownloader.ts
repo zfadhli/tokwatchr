@@ -244,6 +244,16 @@ export class TikTokLiveDownloader {
 	}
 
 	private async _run(waitForLive: boolean): Promise<DownloadResult> {
+		// Reset abortController so start() can be called multiple times
+		this.abortController = new AbortController();
+		if (this.options.signal) {
+			this.options.signal.addEventListener(
+				"abort",
+				() => this.abortController.abort(),
+				{ once: true },
+			);
+		}
+
 		// Track background remuxes so we can await them on error/abort
 		const pendingRemuxes: Promise<DownloadResult>[] = [];
 
