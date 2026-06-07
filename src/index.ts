@@ -6,7 +6,7 @@ export type { RoomResolveOptions } from "./api/room.js";
 // ─── API utilities (mid-level) ────────────────────────────
 export { resolveRoomId } from "./api/room.js";
 export type { StreamInfoOptions } from "./api/stream.js";
-export { fetchStreamInfo } from "./api/stream.js";
+export { checkRoomAlive, fetchStreamInfo } from "./api/stream.js";
 // ─── Error classes ────────────────────────────────────────
 export {
 	AbortError,

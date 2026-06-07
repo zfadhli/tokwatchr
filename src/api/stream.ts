@@ -9,6 +9,27 @@ export interface StreamInfoOptions {
 }
 
 /**
+ * Lightweight check whether a room is currently alive.
+ * Uses TikTok's `check_alive` endpoint — one request, fast response.
+ */
+export async function checkRoomAlive(
+	roomId: string,
+	impIt: Impit,
+	signal?: AbortSignal,
+): Promise<boolean> {
+	const url = `https://webcast.tiktok.com/webcast/room/check_alive/?aid=1988&region=CH&room_ids=${encodeURIComponent(roomId)}&user_is_login=true`;
+	try {
+		const response = await impIt.fetch(url, { signal });
+		if (!response.ok) return false;
+		const json = (await response.json()) as Record<string, unknown>;
+		const data = json.data as Array<Record<string, unknown>> | undefined;
+		return data?.[0]?.alive === true;
+	} catch {
+		return false;
+	}
+}
+
+/**
  * Fetch stream info for a given room ID.
  *
  * Calls the TikTok webcast room/info API and parses the response
