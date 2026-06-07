@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.4] - 2026-06-05
+
+### Fixed
+
+- `start()` can now be called multiple times — the `abortController` was created
+  once in the constructor and never reset, so after `stop()` the signal stayed
+  permanently aborted and the next `start()` immediately threw at `throwIfAborted()`
+
 ## [0.6.3] - 2026-06-05
 
 ### Fixed
@@ -124,6 +132,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.6.4]: https://github.com/zfadhli/tokwatchr/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/zfadhli/tokwatchr/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/zfadhli/tokwatchr/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/zfadhli/tokwatchr/compare/v0.6.0...v0.6.1
