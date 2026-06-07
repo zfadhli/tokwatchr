@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.1] - 2026-06-05
+
+### Fixed
+
+- CLI no longer calls `process.exit(0)` after `stop()` — the remux ffmpeg
+  subprocess was killed before it could finish, leaving `.ts` files un-remuxed
+- Watch mode now properly breaks the polling loop on Ctrl+C instead of
+  continuing to record new segments
+
+### Changed
+
+- CLI output now shows just filenames during progress, with the output
+  directory displayed once at the end
+
 ## [0.7.0] - 2026-06-05
 
 ### Added
@@ -149,6 +163,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.7.1]: https://github.com/zfadhli/tokwatchr/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/zfadhli/tokwatchr/compare/v0.6.5...v0.7.0
 [0.6.5]: https://github.com/zfadhli/tokwatchr/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/zfadhli/tokwatchr/compare/v0.6.3...v0.6.4
