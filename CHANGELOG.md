@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.2] - 2026-06-05
+
+### Fixed
+
+- Reduced HTTP requests per polling cycle by ~33% — `checkUserExists()` is now
+  called only once per `_run()` instead of once per retry, lowering the chance
+  of hitting TikTok's rate limit during long wait periods
+
 ## [0.7.1] - 2026-06-05
 
 ### Fixed
@@ -163,6 +171,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.7.2]: https://github.com/zfadhli/tokwatchr/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/zfadhli/tokwatchr/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/zfadhli/tokwatchr/compare/v0.6.5...v0.7.0
 [0.6.5]: https://github.com/zfadhli/tokwatchr/compare/v0.6.4...v0.6.5
