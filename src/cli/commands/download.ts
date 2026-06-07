@@ -28,9 +28,8 @@ export async function executeDownload(
 	// ─── SIGINT / SIGTERM (registered BEFORE any async work) ─────
 
 	const onSignal = async () => {
-		console.log(`\n\n  ${pc.red("Stopping...")}`);
 		await downloader.stop();
-		process.exit(0);
+		// No process.exit — let event loop drain naturally
 	};
 	process.on("SIGINT", onSignal);
 	process.on("SIGTERM", onSignal);

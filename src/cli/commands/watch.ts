@@ -21,13 +21,14 @@ export async function executeWatch(
 	options: WatchCliOptions,
 ): Promise<void> {
 	let downloader: TikTokLiveDownloader;
+	let stopped = false;
 
 	// ─── SIGINT / SIGTERM (registered BEFORE any async work) ─────
 
 	const onSignal = async () => {
-		console.log(`\n\n  ${pc.red("Stopping...")}`);
+		stopped = true;
 		await downloader.stop();
-		process.exit(0);
+		// No process.exit — let event loop drain naturally
 	};
 	process.on("SIGINT", onSignal);
 	process.on("SIGTERM", onSignal);
@@ -111,12 +112,15 @@ export async function executeWatch(
 	);
 
 	while (true) {
+		if (stopped) break;
 		try {
 			await downloader.start();
+			if (stopped) break;
 			// Stream ended — complete event already printed results.
 			// Continue watching for the next one.
 			console.log(`\n  ${pc.dim("Stream ended, watching for next...")}`);
 		} catch (error) {
+			if (stopped) break;
 			if (error instanceof UserNotFoundError) {
 				console.error(
 					pc.red("[error]"),
