@@ -178,17 +178,10 @@ export class TikTokLiveDownloader {
 		}
 		this.setState("stopping");
 		this.abortController.abort();
-		// Wait for state to transition to done, with timeout
+		// Wait for _run()'s catch block to finish remux and set "done"
 		await new Promise<void>((resolve) => {
-			let settled = false;
-			const timer = setTimeout(() => {
-				settled = true;
-				resolve();
-			}, 5_000);
 			const check = () => {
-				if (settled) return;
 				if (this._state === "done") {
-					clearTimeout(timer);
 					resolve();
 				} else {
 					setTimeout(check, 100);
