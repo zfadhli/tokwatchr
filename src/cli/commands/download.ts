@@ -1,3 +1,4 @@
+import { basename, dirname } from "node:path";
 import pc from "picocolors";
 import type {
 	DownloadResult,
@@ -67,7 +68,7 @@ export async function executeDownload(
 				break;
 			case "completed":
 				process.stderr.write(
-					`\r  ${pc.green("Remuxed:")} ${info.outputPath}\n`,
+					`\r  ${pc.green("Remuxed:")} ${basename(info.outputPath ?? "")}\n`,
 				);
 				break;
 			case "failed":
@@ -82,13 +83,18 @@ export async function executeDownload(
 		process.stderr.write("\n");
 		for (const r of results) {
 			console.log(
-				`  ${pc.green("Saved:")} ${r.filePath}  ${pc.dim(`(${formatBytes(r.sizeBytes)}, ${formatDuration(r.duration)})`)}`,
+				`  ${pc.green("Saved:")} ${basename(r.filePath)}  ${pc.dim(`(${formatBytes(r.sizeBytes)}, ${formatDuration(r.duration)})`)}`,
 			);
 		}
 		const totalMB = results.reduce((sum, r) => sum + r.sizeMB, 0);
 		console.log(
 			`  Done — ${results.length} segment(s), ${totalMB.toFixed(1)}MB total`,
 		);
+		if (results.length > 0) {
+			console.log(
+				`  ${pc.dim(`Output: ${dirname(results[0]?.filePath ?? "")}/`)}`,
+			);
+		}
 	});
 
 	// ─── Start ──────────────────────────────────────────────
