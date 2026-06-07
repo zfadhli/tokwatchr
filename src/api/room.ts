@@ -4,6 +4,8 @@ import { RoomResolveError, UserNotFoundError } from "../errors.js";
 export interface RoomResolveOptions {
 	impIt?: Impit;
 	signal?: AbortSignal;
+	/** Skip the initial checkUserExists() HTTP request. Used when retrying. */
+	skipUserCheck?: boolean;
 }
 
 /**
@@ -53,8 +55,10 @@ export async function resolveRoomId(
 ): Promise<string> {
 	const cleanUsername = username.replace(/^@/, "").trim();
 
-	// Strategy 0: Verify the user exists
-	await checkUserExists(cleanUsername, impIt, options.signal);
+	// Strategy 0: Verify the user exists (skip on retries to save requests)
+	if (!options.skipUserCheck) {
+		await checkUserExists(cleanUsername, impIt, options.signal);
+	}
 
 	// Strategy 1: Scrape the live page
 	const roomId = await tryScrapeRoomId(cleanUsername, impIt, options.signal);
