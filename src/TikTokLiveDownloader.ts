@@ -66,6 +66,7 @@ export class TikTokLiveDownloader {
 
 	private _state: DownloaderState = "idle";
 	private abortController: AbortController;
+	private _userVerified = false;
 	private _stats: DownloadStats | null = null;
 	private _result: DownloadResult | null = null;
 
@@ -237,8 +238,9 @@ export class TikTokLiveDownloader {
 	}
 
 	private async _run(waitForLive: boolean): Promise<DownloadResult> {
-		// Reset abortController so start() can be called multiple times
+		// Reset state so start() can be called multiple times
 		this.abortController = new AbortController();
+		this._userVerified = false;
 		if (this.options.signal) {
 			this.options.signal.addEventListener(
 				"abort",
@@ -350,6 +352,7 @@ export class TikTokLiveDownloader {
 		try {
 			return await resolveRoomId(this.username, this.impIt, {
 				signal: this.abortController.signal,
+				skipUserCheck: this._userVerified,
 			});
 		} catch (error) {
 			// User-not-found should fail fast, not retry
@@ -388,6 +391,7 @@ export class TikTokLiveDownloader {
 
 			const roomId = await this.resolveRoomIdOnce();
 			if (roomId) {
+				this._userVerified = true;
 				return roomId;
 			}
 
