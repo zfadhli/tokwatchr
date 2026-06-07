@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0] - 2026-06-05
+
+### Added
+
+- CLI commands `download` and `watch` are now built into the `tokwatchr`
+  package — install once and use as a library or run `npx tokwatchr`
+  from the command line
+- `dev` script for running the CLI directly from TypeScript source
+
 ## [0.6.5] - 2026-06-05
 
 ### Fixed
@@ -140,6 +149,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.7.0]: https://github.com/zfadhli/tokwatchr/compare/v0.6.5...v0.7.0
 [0.6.5]: https://github.com/zfadhli/tokwatchr/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/zfadhli/tokwatchr/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/zfadhli/tokwatchr/compare/v0.6.2...v0.6.3
