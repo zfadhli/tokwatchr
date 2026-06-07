@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.5] - 2026-06-05
+
+### Fixed
+
+- `stop()` no longer has a 5-second hard timeout that killed the remux
+  ffmpeg process before it could finish — `stop()` now waits indefinitely
+  for the remux to complete (protected by ffmpeg's own 10-minute timeout)
+
 ## [0.6.4] - 2026-06-05
 
 ### Fixed
@@ -132,6 +140,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.6.5]: https://github.com/zfadhli/tokwatchr/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/zfadhli/tokwatchr/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/zfadhli/tokwatchr/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/zfadhli/tokwatchr/compare/v0.6.1...v0.6.2
