@@ -3,6 +3,9 @@
 	"version": "0.6.5",
 	"description": "Download TikTok livestreams. Given a username, download the livestream.",
 	"type": "module",
+	"bin": {
+		"tokwatchr": "./dist/cli/index.mjs"
+	},
 	"main": "./dist/index.mjs",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.mts",
@@ -11,6 +14,11 @@
 			"import": {
 				"types": "./dist/index.d.mts",
 				"default": "./dist/index.mjs"
+			}
+		},
+		"./cli": {
+			"import": {
+				"default": "./dist/cli/index.mjs"
 			}
 		}
 	},
@@ -22,6 +30,7 @@
 	],
 	"scripts": {
 		"build": "tsdown",
+		"dev": "bun run src/cli/index.ts",
 		"prepublishOnly": "tsdown",
 		"check": "biome check .",
 		"check:write": "biome check --write .",
@@ -37,7 +46,8 @@
 		"livestream",
 		"download",
 		"recorder",
-		"stream"
+		"stream",
+		"cli"
 	],
 	"license": "MIT",
 	"repository": {
@@ -54,6 +64,8 @@
 		"typescript": "^6"
 	},
 	"dependencies": {
-		"impit": "^0.14.1"
+		"cac": "^7.0.0",
+		"impit": "^0.14.1",
+		"picocolors": "^1.1.1"
 	}
 }

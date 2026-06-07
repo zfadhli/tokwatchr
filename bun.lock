@@ -5,7 +5,9 @@
     "": {
       "name": "tokwatchr",
       "dependencies": {
+        "cac": "^7.0.0",
         "impit": "^0.14.1",
+        "picocolors": "^1.1.1",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.4.16",
@@ -14,7 +16,7 @@
         "tsdown": "^0.22.2",
       },
       "peerDependencies": {
-        "typescript": "^6.0.3",
+        "typescript": "^6",
       },
     },
   },
@@ -158,6 +160,8 @@
     "obug": ["obug@2.1.2", "", {}, "sha512-AWGB9WFcRXOQs48Z/udjI5ZcZMHXwX8XPByNpOydgcGsDLIzjGizhoMWJyKAWze7AVW/2W1i+/gPX4YtKe5cyg=="],
 
     "pathe": ["pathe@2.0.3", "", {}, "sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w=="],
+
+    "picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
 
     "picomatch": ["picomatch@4.0.4", "", {}, "sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A=="],
 
