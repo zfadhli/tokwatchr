@@ -6,7 +6,7 @@ import { join } from "node:path";
 import type { Impit } from "impit";
 import { createClient } from "./api/client.js";
 import { resolveRoomId } from "./api/room.js";
-import { fetchStreamInfo } from "./api/stream.js";
+import { checkRoomAlive, fetchStreamInfo } from "./api/stream.js";
 import { downloadWithFfmpeg } from "./download/ffmpeg.js";
 import { downloadRawHttp } from "./download/raw-http.js";
 import {
@@ -67,6 +67,7 @@ export class TikTokLiveDownloader {
 	private _state: DownloaderState = "idle";
 	private abortController: AbortController;
 	private _userVerified = false;
+	private _lastRoomId: string | null = null;
 	private _stats: DownloadStats | null = null;
 	private _result: DownloadResult | null = null;
 
@@ -241,6 +242,7 @@ export class TikTokLiveDownloader {
 		// Reset state so start() can be called multiple times
 		this.abortController = new AbortController();
 		this._userVerified = false;
+		this._lastRoomId = null;
 		if (this.options.signal) {
 			this.options.signal.addEventListener(
 				"abort",
@@ -349,11 +351,29 @@ export class TikTokLiveDownloader {
 	}
 
 	private async resolveRoomIdOnce(): Promise<string | null> {
+		// Fast path: if we already have a room ID, check_alive is lighter
+		if (this._lastRoomId) {
+			try {
+				const alive = await checkRoomAlive(
+					this._lastRoomId,
+					this.impIt,
+					this.abortController.signal,
+				);
+				if (alive) return this._lastRoomId;
+			} catch {
+				// fall through to normal resolution
+			}
+		}
+
 		try {
-			return await resolveRoomId(this.username, this.impIt, {
+			const roomId = await resolveRoomId(this.username, this.impIt, {
 				signal: this.abortController.signal,
 				skipUserCheck: this._userVerified,
 			});
+			if (roomId) {
+				this._lastRoomId = roomId;
+			}
+			return roomId;
 		} catch (error) {
 			// User-not-found should fail fast, not retry
 			if (error instanceof UserNotFoundError) {
@@ -392,6 +412,7 @@ export class TikTokLiveDownloader {
 			const roomId = await this.resolveRoomIdOnce();
 			if (roomId) {
 				this._userVerified = true;
+				this._lastRoomId = roomId;
 				return roomId;
 			}
 
