@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.0] - 2026-06-06
+
+### Added
+
+- `checkRoomAlive()` — lightweight endpoint (`webcast/room/check_alive/`) for
+  checking if a room is still live with a single request instead of 2-3
+- Room ID caching — the last known room ID is reused across polling cycles
+  via the new fast path, reducing unnecessary profile scrapes
+- ffmpeg `-reconnect` flags — ffmpeg transparently reconnects on transient
+  stream disconnects instead of terminating the segment
+
 ## [0.7.2] - 2026-06-05
 
 ### Fixed
@@ -171,6 +182,7 @@
 - ffmpeg no longer hangs indefinitely on bad or stalled stream URLs — a 30-second
   startup timeout kills stalled ffmpeg processes and reports the error
 
+[0.8.0]: https://github.com/zfadhli/tokwatchr/compare/v0.7.2...v0.8.0
 [0.7.2]: https://github.com/zfadhli/tokwatchr/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/zfadhli/tokwatchr/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/zfadhli/tokwatchr/compare/v0.6.5...v0.7.0
